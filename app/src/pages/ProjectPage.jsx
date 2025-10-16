@@ -2,9 +2,9 @@ import { useMemo } from "react";
 import TaskCard from "../components/TaskCard.jsx";
 
 const STATUSES = [
-  { id: "todo",        label: "ToDo" },
+  { id: "todo", label: "ToDo" },
   { id: "in-progress", label: "In Progress" },
-  { id: "done",        label: "Done" },
+  { id: "done", label: "Done" },
 ];
 
 export default function Project({ project, onBack, onOpenCreateTask }) {

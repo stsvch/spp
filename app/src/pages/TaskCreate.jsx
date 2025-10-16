@@ -1,9 +1,9 @@
 import { useState } from "react";
 
 const STATUSES = [
-  { id: "todo",        label: "ToDo" },
+  { id: "todo", label: "ToDo" },
   { id: "in-progress", label: "In Progress" },
-  { id: "done",        label: "Done" },
+  { id: "done", label: "Done" },
 ];
 
 export default function TaskCreate({ project, onCancel, onCreate }) {
