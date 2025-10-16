@@ -40,3 +40,13 @@
 .read-the-docs {
   color: #888;
 }
+
+.board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px; }
+.column { background: #fff; border: 1px solid #e8e8e8; border-radius: 12px; padding: 12px; }
+.column h3 { margin: 0 0 8px; font-size: 1rem; }
+.card { border: 1px solid #eee; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; background: #fafafa; }
+.card small { display: block; color: #666; margin-top: 4px; }
+
+.form { display: grid; gap: 10px; margin-top: 16px; padding: 12px; border: 1px dashed #ddd; border-radius: 12px; background: #fff; }
+.form input, .form textarea, .form select { width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 8px; background: #fff; }
+.form button { padding: 8px 12px; border-radius: 8px; border: 1px solid #ddd; background: #f6f6f6; cursor: pointer; }

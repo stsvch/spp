@@ -1,8 +1,10 @@
-export default function Projects() {
+import ProjectList from "../components/ProjectList.jsx";
+
+export default function Projects({ projects, onOpenProject }) {
   return (
     <section>
       <h1>Проекты</h1>
-      <p>Список будет позже</p>
+      <ProjectList projects={projects} onOpenProject={onOpenProject} />
     </section>
   );
 }
