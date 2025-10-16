@@ -1,7 +1,7 @@
 import { formatDate, isToday } from "../utils/date.js";
 import { generateId } from "../utils/id.js";
 import { filterByStatus } from "../utils/tasks.js";
-import TaskCard from "../components/TaskCard.jsx"; // ← используем общий компонент
+import TaskCard from "../components/TaskCard.jsx"; 
 
 export default function Home() {
   const sampleTasks = [
