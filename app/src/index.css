@@ -103,3 +103,50 @@ button:focus-visible {
   color: #666;
   margin-top: 4px;
 }
+
+.form-wide {
+  max-width: 760px;
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.form-row {
+  display: grid;
+  gap: 6px;
+}
+
+.form-two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.form-actions {
+  margin-top: 8px;
+}
+
+label {
+  font-size: 0.9rem;
+  color: #333;
+}
+
+input, textarea, select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  background: #fff;
+  outline: none;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: #646cff;
+  box-shadow: 0 0 0 3px rgba(100,108,255,.15);
+}
+
+.field-error {
+  color: #b3261e;
+  font-size: 0.85rem;
+}
