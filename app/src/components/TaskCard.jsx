@@ -1,7 +1,8 @@
 export default function TaskCard({
   task,
   showCreatedAt = false,
-  highlightTitle = false 
+  highlightTitle = false,
+  actions = null,
 }) {
   if (!task) return null;
 
@@ -12,12 +13,12 @@ export default function TaskCard({
       </div>
 
       {task.description && <small>{task.description}</small>}
-
       {task.assignee && <small>Исполнитель: {task.assignee}</small>}
-
       {showCreatedAt && task.createdAt && (
         <small>создана {new Date(task.createdAt).toLocaleDateString("ru-RU")}</small>
       )}
+
+      {actions}
     </div>
   );
 }

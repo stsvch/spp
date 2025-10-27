@@ -1,19 +1,13 @@
-export default function Nav({ current, onNavigate }) {
-  const Item = ({ id, children }) => (
-    <button
-      onClick={() => onNavigate(id)}
-      style={{
-        padding: "0.5rem 0.75rem",
-        border: "none",
-        borderBottom: current === id ? "2px solid black" : "2px solid transparent",
-        background: "transparent",
-        cursor: "pointer",
-        fontWeight: current === id ? 700 : 400,
-      }}
-    >
-      {children}
-    </button>
-  );
+import { NavLink } from "react-router-dom";
+
+export default function Nav() {
+  const linkStyle = ({ isActive }) => ({
+    padding: "0.5rem 0.75rem",
+    borderBottom: isActive ? "2px solid black" : "2px solid transparent",
+    textDecoration: "none",
+    color: "inherit",
+    fontWeight: isActive ? 700 : 400,
+  });
 
   return (
     <header
@@ -27,9 +21,9 @@ export default function Nav({ current, onNavigate }) {
     >
       <strong style={{ marginRight: "1rem" }}>TaskBoard</strong>
       <nav style={{ display: "flex", gap: "0.25rem" }}>
-        <Item id="home">Главная</Item>
-        <Item id="projects">Проекты</Item>
-        <Item id="profile">Профиль пользователя</Item>
+        <NavLink to="/" style={linkStyle} end>Главная</NavLink>
+        <NavLink to="/projects" style={linkStyle}>Проекты</NavLink>
+        <NavLink to="/profile" style={linkStyle}>Профиль пользователя</NavLink>
       </nav>
     </header>
   );
