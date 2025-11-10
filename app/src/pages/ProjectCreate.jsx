@@ -4,15 +4,21 @@ import { useProjects } from "../context/ProjectsContext.jsx";
 
 export default function ProjectCreate() {
   const [name, setName] = useState("");
+  const [err, setErr] = useState("");
   const navigate = useNavigate();
-  const { dispatch } = useProjects();
+  const { createProject } = useProjects();
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
+    setErr("");
     const nm = name.trim();
     if (!nm) return;
-    dispatch({ type: "PROJECT_ADD", payload: { name: nm } });
-    navigate("/projects");
+    try {
+      await createProject({ name: nm });
+      navigate("/projects");
+    } catch (e) {
+      setErr(e.message);
+    }
   }
 
   return (
@@ -25,6 +31,7 @@ export default function ProjectCreate() {
           <label htmlFor="pname">Название проекта *</label>
           <input id="pname" value={name} onChange={e => setName(e.target.value)} placeholder="Например: CRM система" />
         </div>
+        {err && <div className="field-error" style={{ marginTop: 8 }}>{err}</div>}
         <div className="form-actions">
           <button type="submit">Создать</button>
         </div>

@@ -1,11 +1,11 @@
 import { Router } from "express";
 import { Project } from "../models/Project.js";
 import { Task } from "../models/Task.js";
-
+import { authRequired, requireRole, memberOfProjectOrAdmin } from "../middleware/auth.js";
 const router = Router();
 
 // GET /api/projects
-router.get("/", async (_req, res, next) => {
+router.get("/", authRequired, async (_req, res, next) => { 
   try {
     const projects = await Project.find().lean();
     const ids = projects.map(p => p._id);
@@ -20,7 +20,7 @@ router.get("/", async (_req, res, next) => {
 });
 
 // GET /api/projects/:id 
-router.get("/:id", async (req, res, next) => {
+router.get("/:id", authRequired, memberOfProjectOrAdmin, async (req, res, next) => {
   try {
     const proj = await Project.findById(req.params.id).lean();
     if (!proj) return res.status(404).json({ error: "Project not found" });
@@ -30,7 +30,7 @@ router.get("/:id", async (req, res, next) => {
 });
 
 // POST /api/projects  { name, description?, members? }
-router.post("/", async (req, res, next) => {
+router.post("/", authRequired, requireRole("admin"), async (req, res, next) => {
   try {
     const { name, description = "", members = [] } = req.body || {};
     if (!name || !String(name).trim()) return res.status(400).json({ error: "Name is required" });
@@ -40,7 +40,7 @@ router.post("/", async (req, res, next) => {
 });
 
 // PATCH /api/projects/:id  { name?, description?, members? }
-router.patch("/:id", async (req, res, next) => {
+router.patch("/:id", authRequired, requireRole("admin"), async (req, res, next) => {
   try {
     const patch = {};
     if (typeof req.body?.name === "string") patch.name = req.body.name.trim();
@@ -54,11 +54,51 @@ router.patch("/:id", async (req, res, next) => {
 });
 
 // DELETE /api/projects/:id
-router.delete("/:id", async (req, res, next) => {
+router.delete("/:id", authRequired, requireRole("admin"), async (req, res, next) => {
   try {
     const proj = await Project.findByIdAndDelete(req.params.id);
     if (!proj) return res.status(404).json({ error: "Project not found" });
     await Task.deleteMany({ project: proj._id });
+    res.status(204).end();
+  } catch (e) { next(e); }
+});
+
+// ADMIN: добавить участника по userId
+router.post("/:id/members", authRequired, requireRole("admin"), async (req, res, next) => {
+  try {
+    const { id } = req.params;                      // project id
+    const { userId } = req.body || {};
+    if (!mongoose.isValidObjectId(id) || !mongoose.isValidObjectId(userId)) {
+      return res.status(400).json({ error: "Invalid ids" });
+    }
+    const [proj, user] = await Promise.all([
+      Project.findById(id),
+      User.findById(userId, { _id: 1 })
+    ]);
+    if (!proj) return res.status(404).json({ error: "Project not found" });
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const exists = (proj.members ?? []).some(m => m.toString() === userId);
+    if (!exists) proj.members.push(user._id);
+    await proj.save();
+
+    res.status(204).end();
+  } catch (e) { next(e); }
+});
+
+// ADMIN: удалить участника
+router.delete("/:id/members/:userId", authRequired, requireRole("admin"), async (req, res, next) => {
+  try {
+    const { id, userId } = req.params;
+    if (!mongoose.isValidObjectId(id) || !mongoose.isValidObjectId(userId)) {
+      return res.status(400).json({ error: "Invalid ids" });
+    }
+    const proj = await Project.findById(id);
+    if (!proj) return res.status(404).json({ error: "Project not found" });
+
+    proj.members = (proj.members ?? []).filter(m => m.toString() !== userId);
+    await proj.save();
+
     res.status(204).end();
   } catch (e) { next(e); }
 });

@@ -1,11 +1,11 @@
 import { Router } from "express";
 import { Task } from "../models/Task.js";
 import { Project } from "../models/Project.js";
-
+import { authRequired, requireRole, memberOfProjectOrAdmin } from "../middleware/auth.js";
 const router = Router();
 
 // GET /api/projects/:id/tasks
-router.get("/:id/tasks", async (req, res, next) => {
+router.get("/:id/tasks",    authRequired, memberOfProjectOrAdmin,async (req, res, next) => {
   try {
     const project = await Project.findById(req.params.id).lean();
     if (!project) return res.status(404).json({ error: "Project not found" });
@@ -15,7 +15,7 @@ router.get("/:id/tasks", async (req, res, next) => {
 });
 
 // POST /api/projects/:id/tasks  { title, description?, assignee?, status? }
-router.post("/:id/tasks", async (req, res, next) => {
+router.post("/:id/tasks",   authRequired, memberOfProjectOrAdmin, async (req, res, next) => {
   try {
     const project = await Project.findById(req.params.id).lean();
     if (!project) return res.status(404).json({ error: "Project not found" });
@@ -36,7 +36,7 @@ router.post("/:id/tasks", async (req, res, next) => {
 });
 
 // PATCH /api/projects/:id/tasks/:taskId
-router.patch("/:id/tasks/:taskId", async (req, res, next) => {
+router.patch("/:id/tasks/:taskId", authRequired, memberOfProjectOrAdmin, async (req, res, next) => {
   try {
     const project = await Project.findById(req.params.id).lean();
     if (!project) return res.status(404).json({ error: "Project not found" });
@@ -57,7 +57,7 @@ router.patch("/:id/tasks/:taskId", async (req, res, next) => {
 });
 
 // DELETE /api/projects/:id/tasks/:taskId
-router.delete("/:id/tasks/:taskId", async (req, res, next) => {
+router.delete("/:id/tasks/:taskId",authRequired, memberOfProjectOrAdmin, async (req, res, next) => {
   try {
     const project = await Project.findById(req.params.id).lean();
     if (!project) return res.status(404).json({ error: "Project not found" });

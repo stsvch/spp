@@ -1,5 +1,6 @@
 export default function TaskCard({
   task,
+  onClick = null,               // NEW
   showCreatedAt = false,
   highlightTitle = false,
   actions = null,
@@ -7,7 +8,12 @@ export default function TaskCard({
   if (!task) return null;
 
   return (
-    <div className="card">
+    <div
+      className="card"
+      role={onClick ? "button" : undefined}
+      onClick={onClick || undefined}
+      style={{ cursor: onClick ? "pointer" : "default" }}
+    >
       <div style={{ fontWeight: highlightTitle ? 600 : 500 }}>
         {task.title}
       </div>

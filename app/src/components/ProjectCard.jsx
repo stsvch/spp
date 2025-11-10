@@ -1,5 +1,6 @@
 export default function ProjectCard({ project, onOpen }) {
-  const tasksCount = project.tasks?.length ?? 0;
+  const tasksCount = project.tasksCount ?? 0;
+
   return (
     <button
       onClick={() => onOpen(project.id)}
