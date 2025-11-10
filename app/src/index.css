@@ -150,3 +150,76 @@ input:focus, textarea:focus, select:focus {
   color: #b3261e;
   font-size: 0.85rem;
 }
+
+.task-card {
+  display: grid;
+  gap: 8px;
+}
+
+.task-files {
+  border-top: 1px dashed #d7d7d7;
+  padding-top: 6px;
+  margin-top: 4px;
+}
+
+.task-files__title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 4px;
+}
+
+.task-files__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.task-files__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid #ececec;
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
+.task-files__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.task-files__name {
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.task-files__size {
+  color: #666;
+}
+
+.task-files__buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.task-files__upload {
+  margin-top: 4px;
+}
+
+.task-files__upload-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: #4a51ff;
+}
+
+.task-files__upload-label input {
+  display: none;
+}

@@ -1,5 +1,6 @@
 // app/src/utils/api.js
 const BASE = import.meta.env.VITE_API_URL;
+const MAX_UPLOAD_SIZE = 10 * 1024 * 1024;
 
 let accessToken = localStorage.getItem("access_token") || null;
 
@@ -9,27 +10,32 @@ export function setAccessToken(token) {
   else localStorage.removeItem("access_token");
 }
 
-async function coreFetch(path, options = {}, tryRefresh = true) {
-  const headers = {
-    "Accept": "application/json",
-    "Content-Type": "application/json",
-    ...(options.headers || {}),
-  };
+async function authorizedFetch(path, options = {}, tryRefresh = true) {
+  const headers = { ...(options.headers || {}) };
+
+  if (options.body !== undefined && !(options.body instanceof FormData) && !headers["Content-Type"]) {
+    headers["Content-Type"] = "application/json";
+  }
+  if (!headers.Accept) headers.Accept = "application/json";
   if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
 
-  const res = await fetch(`${BASE}${path}`, {
+  const response = await fetch(`${BASE}${path}`, {
     credentials: "include",
     ...options,
     headers,
   });
 
-  // если истёк access — пробуем обновить 1 раз
-  if (res.status === 401 && tryRefresh) {
+  if (response.status === 401 && tryRefresh) {
     const ok = await refreshAccess();
-    if (ok) return coreFetch(path, options, false);
+    if (ok) return authorizedFetch(path, options, false);
   }
 
-  // обработка пустых тел (204 / пустой body)
+  return response;
+}
+
+async function coreFetch(path, options = {}, tryRefresh = true) {
+  const res = await authorizedFetch(path, options, tryRefresh);
+
   if (res.status === 204) return null;
 
   let data = null;
@@ -56,6 +62,20 @@ async function refreshAccess() {
     setAccessToken(null);
     return false;
   }
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Не удалось прочитать файл"));
+    reader.onload = () => {
+      const result = reader.result || "";
+      const str = typeof result === "string" ? result : "";
+      const commaIndex = str.indexOf(",");
+      resolve(commaIndex >= 0 ? str.slice(commaIndex + 1) : str);
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
 export const api = {
@@ -94,6 +114,49 @@ export const api = {
   createTask:(projectId, task) => coreFetch(`/projects/${projectId}/tasks`, { method:"POST", body: JSON.stringify(task) }),
   updateTask:(projectId, taskId, patch) => coreFetch(`/projects/${projectId}/tasks/${taskId}`, { method:"PATCH", body: JSON.stringify(patch) }),
   deleteTask:(projectId, taskId) => coreFetch(`/projects/${projectId}/tasks/${taskId}`, { method:"DELETE" }),
+  async uploadTaskFile(projectId, taskId, file) {
+    if (!file) throw new Error("Файл не выбран");
+    if (file.size > MAX_UPLOAD_SIZE) throw new Error("Файл превышает 10 МБ");
+    const data = await fileToBase64(file);
+    return coreFetch(`/projects/${projectId}/tasks/${taskId}/files`, {
+      method: "POST",
+      body: JSON.stringify({
+        name: file.name,
+        contentType: file.type || "application/octet-stream",
+        data,
+      }),
+    });
+  },
+  deleteTaskFile: (projectId, taskId, fileId) =>
+    coreFetch(`/projects/${projectId}/tasks/${taskId}/files/${fileId}`, { method: "DELETE" }),
+  async downloadTaskFile(projectId, taskId, fileId) {
+    const res = await authorizedFetch(`/projects/${projectId}/tasks/${taskId}/files/${fileId}`, {
+      method: "GET",
+      headers: { Accept: "*/*" },
+    });
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      let msg = `HTTP ${res.status}`;
+      if (text) {
+        try {
+          const parsed = JSON.parse(text);
+          if (parsed?.error) msg = parsed.error;
+        } catch {}
+      }
+      throw new Error(msg);
+    }
+
+    const blob = await res.blob();
+    const disposition = res.headers.get("Content-Disposition") || "";
+    let filename = `file-${fileId}`;
+    const match = disposition.match(/filename\*=UTF-8''([^;]+)|filename="?([^";]+)"?/i);
+    if (match) {
+      filename = decodeURIComponent(match[1] || match[2]);
+    }
+
+    return { blob, filename };
+  },
 
   // ==== users & members (для админа / менеджера участников) ====
   listUsers: () => coreFetch("/users"), // только admin

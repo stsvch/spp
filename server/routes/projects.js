@@ -4,6 +4,8 @@ import { User } from "../models/User.js";
 import { Project } from "../models/Project.js";
 import { Task } from "../models/Task.js";
 import { authRequired, requireRole, memberOfProjectOrAdmin } from "../middleware/auth.js";
+import { removeStoredFile } from "../utils/files.js";
+import { taskToClient } from "../utils/serializers.js";
 const router = Router();
 
 // GET /api/projects
@@ -27,7 +29,7 @@ router.get("/:id", authRequired, memberOfProjectOrAdmin, async (req, res, next) 
     const proj = await Project.findById(req.params.id).lean();
     if (!proj) return res.status(404).json({ error: "Project not found" });
     const tasks = await Task.find({ project: proj._id }).lean();
-    res.json({ ...proj, id: String(proj._id), tasks: tasks.map(t => ({ ...t, id: String(t._id) })) });
+    res.json({ ...proj, id: String(proj._id), tasks: tasks.map(taskToClient) });
   } catch (e) { next(e); }
 });
 
@@ -58,9 +60,15 @@ router.patch("/:id", authRequired, requireRole("admin"), async (req, res, next) 
 // DELETE /api/projects/:id
 router.delete("/:id", authRequired, requireRole("admin"), async (req, res, next) => {
   try {
-    const proj = await Project.findByIdAndDelete(req.params.id);
+    const proj = await Project.findById(req.params.id);
     if (!proj) return res.status(404).json({ error: "Project not found" });
+
+    const tasks = await Task.find({ project: proj._id }).lean();
+    const attachments = tasks.flatMap(t => t.attachments || []);
+    await Promise.all(attachments.map(att => removeStoredFile(att?.filename)));
+
     await Task.deleteMany({ project: proj._id });
+    await proj.deleteOne();
     res.status(204).end();
   } catch (e) { next(e); }
 });

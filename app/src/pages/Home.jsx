@@ -84,22 +84,29 @@ export default function Home() {
               <div key={s.id} className="column">
                 <h3>{s.label}</h3>
                 {(byStatus[s.id] ?? []).length ? (
-                  byStatus[s.id].map(task => (
-                    <TaskCard
-                      key={task.id}
-                      task={task}
-                      actions={
-                        <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
-                          <button onClick={() => navigate(`/projects/${task.projectId}`)}>
-                            Открыть проект
-                          </button>
-                          <Link to={`/projects/${task.projectId}/edit-task/${task.id}`}>
-                            <button>Редактировать</button>
-                          </Link>
-                        </div>
-                      }
-                    />
-                  ))
+                  byStatus[s.id].map(task => {
+                    const projectRef = projects.find(p => p.id === task.projectId);
+                    const canManageTask = user.role === "admin" || (projectRef?.members ?? []).includes(user.id);
+                    return (
+                      <TaskCard
+                        key={task.id}
+                        projectId={task.projectId}
+                        task={task}
+                        canManage={canManageTask}
+                        onChanged={() => reloadProject(task.projectId)}
+                        actions={
+                          <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+                            <button onClick={() => navigate(`/projects/${task.projectId}`)}>
+                              Открыть проект
+                            </button>
+                            <Link to={`/projects/${task.projectId}/edit-task/${task.id}`}>
+                              <button>Редактировать</button>
+                            </Link>
+                          </div>
+                        }
+                      />
+                    );
+                  })
                 ) : (
                   <small>Нет задач</small>
                 )}

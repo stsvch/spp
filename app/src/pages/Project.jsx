@@ -81,6 +81,8 @@ export default function Project() {
   const membersSet = new Set(project.members?.map(String) ?? []);
   const candidates = allUsers.filter(u => !membersSet.has(String(u.id)));
 
+  const reloadCurrentProject = () => reloadProject(project.id);
+
   return (
     <section>
       <button onClick={() => navigate("/projects")} style={{ marginBottom: 12 }}>← К проектам</button>
@@ -145,7 +147,10 @@ export default function Project() {
         ? byStatus[s.id].map(task => (
             <TaskCard
               key={task.id}
+              projectId={project.id}
               task={task}
+              canManage={canManage}
+              onChanged={reloadCurrentProject}
               actions={canManage ? (
                 <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
                   <Link to={`/projects/${project.id}/edit-task/${task.id}`}>
