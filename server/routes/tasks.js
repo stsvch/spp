@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { Task } from "../models/Task.js";
 import { Project } from "../models/Project.js";
-import { authRequired, requireRole, memberOfProjectOrAdmin } from "../middleware/auth.js";
+import { authRequired, memberOfProjectOrAdmin } from "../middleware/auth.js";
 const router = Router();
 
 // GET /api/projects/:id/tasks

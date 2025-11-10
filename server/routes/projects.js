@@ -1,4 +1,6 @@
 import { Router } from "express";
+import mongoose from "mongoose";
+import { User } from "../models/User.js";
 import { Project } from "../models/Project.js";
 import { Task } from "../models/Task.js";
 import { authRequired, requireRole, memberOfProjectOrAdmin } from "../middleware/auth.js";
