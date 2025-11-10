@@ -3,9 +3,7 @@ import { Task } from "../models/Task.js";
 import { Project } from "../models/Project.js";
 import { File } from "../models/File.js";
 import { authRequired, memberOfProjectOrAdmin } from "../middleware/auth.js";
-import { removeStoredFile, saveBufferToFile, resolveStoredFile } from "../utils/fileStorage.js";
-import fs from "fs";
-import path from "path";
+import { deleteFromGridFS, openDownloadStream, saveBufferToGridFS } from "../utils/gridFsStorage.js";
 
 const router = Router();
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MiB
@@ -100,7 +98,7 @@ router.delete("/:id/tasks/:taskId", authRequired, memberOfProjectOrAdmin, async 
     if (!task) return res.status(404).json({ error: "Task not found" });
     const files = await File.find({ task: task._id }).lean();
     await File.deleteMany({ task: task._id });
-    await Promise.all(files.map(f => removeStoredFile(f.storedName).catch(() => {})));
+    await Promise.all(files.map(f => deleteFromGridFS(f.storageId).catch(() => {})));
     res.status(204).end();
   } catch (e) { next(e); }
 });
@@ -130,13 +128,17 @@ router.post("/:id/tasks/:taskId/files", authRequired, memberOfProjectOrAdmin, as
     if (buffer.length > MAX_FILE_SIZE) return res.status(400).json({ error: "File is too large" });
     if (buffer.length !== size) return res.status(400).json({ error: "File size mismatch" });
 
-    const { storedName } = await saveBufferToFile(buffer, name);
+    const storageId = await saveBufferToGridFS(
+      buffer,
+      name,
+      type || "application/octet-stream"
+    );
 
     const file = await File.create({
       originalName: name,
       mimeType: type || "application/octet-stream",
       size: buffer.length,
-      storedName,
+      storageId,
       project: project._id,
       task: task._id,
       uploadedBy: req.user?.id,
@@ -161,12 +163,31 @@ router.get("/:id/tasks/:taskId/files/:fileId", authRequired, memberOfProjectOrAd
     const file = await File.findOne({ _id: fileId, project: id, task: taskId });
     if (!file) return res.status(404).json({ error: "File not found" });
 
-    const filePath = resolveStoredFile(file.storedName);
-    if (!fs.existsSync(filePath)) return res.status(404).json({ error: "File missing on server" });
+    let stream;
+    try {
+      stream = openDownloadStream(file.storageId);
+    } catch (err) {
+      return res.status(404).json({ error: "File missing in storage" });
+    }
 
-    res.setHeader("Content-Type", file.mimeType || "application/octet-stream");
-    res.setHeader("Content-Disposition", `attachment; filename="${encodeURIComponent(file.originalName)}"`);
-    res.sendFile(path.resolve(filePath));
+    const contentType = file.mimeType || "application/octet-stream";
+    res.setHeader("Content-Type", contentType);
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${encodeURIComponent(file.originalName)}"`
+    );
+
+    stream.on("error", err => {
+      stream.destroy();
+      if (err?.message?.includes("FileNotFound")) {
+        if (!res.headersSent) res.status(404).json({ error: "File missing in storage" });
+        return;
+      }
+      if (!res.headersSent) res.status(500).json({ error: "Unable to read file" });
+      else res.destroy(err);
+    });
+
+    stream.pipe(res);
   } catch (e) { next(e); }
 });
 
@@ -178,7 +199,7 @@ router.delete("/:id/tasks/:taskId/files/:fileId", authRequired, memberOfProjectO
     if (!file) return res.status(404).json({ error: "File not found" });
 
     await Task.updateOne({ _id: taskId }, { $pull: { attachments: file._id } });
-    await removeStoredFile(file.storedName);
+    await deleteFromGridFS(file.storageId);
 
     res.status(204).end();
   } catch (e) { next(e); }

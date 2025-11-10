@@ -6,7 +6,7 @@ const fileSchema = new mongoose.Schema(
     mimeType:     { type: String, required: true, trim: true },
     size:         { type: Number, required: true, min: 0 },
 
-    storedName:   { type: String, required: true, unique: true },
+    storageId:    { type: mongoose.Schema.Types.ObjectId, required: true, unique: true },
 
     project:      { type: mongoose.Schema.Types.ObjectId, ref: "Project", required: true },
     task:         { type: mongoose.Schema.Types.ObjectId, ref: "Task", required: true },

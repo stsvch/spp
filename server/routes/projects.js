@@ -5,7 +5,7 @@ import { Project } from "../models/Project.js";
 import { Task } from "../models/Task.js";
 import { File } from "../models/File.js";
 import { authRequired, requireRole, memberOfProjectOrAdmin } from "../middleware/auth.js";
-import { removeStoredFile } from "../utils/fileStorage.js";
+import { deleteFromGridFS } from "../utils/gridFsStorage.js";
 const router = Router();
 
 function serializeFile(file, projectId, taskId) {
@@ -93,7 +93,7 @@ router.delete("/:id", authRequired, requireRole("admin"), async (req, res, next)
     const files = await File.find({ project: proj._id }).lean();
     await File.deleteMany({ project: proj._id });
     await Task.deleteMany({ project: proj._id });
-    await Promise.all(files.map(f => removeStoredFile(f.storedName).catch(() => {})));
+    await Promise.all(files.map(f => deleteFromGridFS(f.storageId).catch(() => {})));
     res.status(204).end();
   } catch (e) { next(e); }
 });
