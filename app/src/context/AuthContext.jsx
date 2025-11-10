@@ -1,6 +1,6 @@
 // app/src/context/AuthContext.jsx
 import { createContext, useContext, useEffect, useState } from "react";
-import { api, setAccessToken } from "../utils/api.js";
+import { api, setAccessToken, refreshAccess } from "../utils/api.js";
 
 const AuthCtx = createContext(null);
 
@@ -12,12 +12,7 @@ export function AuthProvider({ children }) {
       try {
         // если нет access — пробуем освежить
         if (!localStorage.getItem("access_token")) {
-          const ok = await fetch(import.meta.env.VITE_API_URL + "/auth/refresh", {
-            method: "POST",
-            credentials: "include",
-          }).then(r => r.ok ? r.json() : null).catch(() => null);
-
-          if (ok?.accessToken) setAccessToken(ok.accessToken);
+          await refreshAccess();
         }
         // если access есть — подтянуть профиль
         if (localStorage.getItem("access_token")) {

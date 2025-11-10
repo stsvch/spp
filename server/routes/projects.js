@@ -6,35 +6,9 @@ import { Task } from "../models/Task.js";
 import { File } from "../models/File.js";
 import { authRequired, requireRole, memberOfProjectOrAdmin } from "../middleware/auth.js";
 import { deleteFromGridFS } from "../utils/gridFsStorage.js";
+import { serializeProjectSummary, serializeProjectWithTasks } from "../utils/serializers.js";
+
 const router = Router();
-
-function serializeFile(file, projectId, taskId) {
-  if (!file) return null;
-  const id = String(file._id || file.id);
-  return {
-    id,
-    originalName: file.originalName,
-    mimeType: file.mimeType,
-    size: file.size,
-    uploadedAt: file.createdAt,
-    downloadUrl: `/api/projects/${projectId}/tasks/${taskId}/files/${id}`,
-  };
-}
-
-function serializeTask(task) {
-  const projectId = String(task.project);
-  const taskId = String(task._id || task.id);
-  const attachments = (task.attachments || [])
-    .map(file => serializeFile(file, projectId, taskId))
-    .filter(Boolean);
-
-  return {
-    ...task,
-    id: taskId,
-    project: projectId,
-    attachments,
-  };
-}
 
 // GET /api/projects
 router.get("/", authRequired, async (_req, res, next) => { 
@@ -46,7 +20,9 @@ router.get("/", authRequired, async (_req, res, next) => {
       { $group: { _id: "$project", count: { $sum: 1 } } }
     ]);
     const map = new Map(counts.map(c => [String(c._id), c.count]));
-    const withCount = projects.map(p => ({ ...p, tasksCount: map.get(String(p._id)) || 0, id: String(p._id) }));
+    const withCount = projects.map(p =>
+      serializeProjectSummary(p, map.get(String(p._id)) || 0)
+    );
     res.json(withCount);
   } catch (e) { next(e); }
 });
@@ -54,10 +30,11 @@ router.get("/", authRequired, async (_req, res, next) => {
 // GET /api/projects/:id 
 router.get("/:id", authRequired, memberOfProjectOrAdmin, async (req, res, next) => {
   try {
-    const proj = await Project.findById(req.params.id).lean();
+    const projDoc = await Project.findById(req.params.id);
+    const proj = projDoc?.toObject();
     if (!proj) return res.status(404).json({ error: "Project not found" });
     const tasks = await Task.find({ project: proj._id }).populate("attachments").lean();
-    res.json({ ...proj, id: String(proj._id), tasks: tasks.map(serializeTask) });
+    res.json(serializeProjectWithTasks(proj, tasks));
   } catch (e) { next(e); }
 });
 

@@ -4,37 +4,10 @@ import { Project } from "../models/Project.js";
 import { File } from "../models/File.js";
 import { authRequired, memberOfProjectOrAdmin } from "../middleware/auth.js";
 import { deleteFromGridFS, openDownloadStream, saveBufferToGridFS } from "../utils/gridFsStorage.js";
+import { serializeFile, serializeTask } from "../utils/serializers.js";
 
 const router = Router();
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MiB
-
-function serializeFile(file, projectId, taskId) {
-  if (!file) return null;
-  const id = String(file._id || file.id);
-  return {
-    id,
-    originalName: file.originalName,
-    mimeType: file.mimeType,
-    size: file.size,
-    uploadedAt: file.createdAt,
-    downloadUrl: `/api/projects/${projectId}/tasks/${taskId}/files/${id}`,
-  };
-}
-
-function serializeTask(task) {
-  const projectId = String(task.project);
-  const taskId = String(task._id || task.id);
-  const attachments = (task.attachments || [])
-    .map(file => serializeFile(file, projectId, taskId))
-    .filter(Boolean);
-
-  return {
-    ...task,
-    id: taskId,
-    project: projectId,
-    attachments,
-  };
-}
 
 // GET /api/projects/:id/tasks
 router.get("/:id/tasks",    authRequired, memberOfProjectOrAdmin, async (req, res, next) => {
