@@ -9,6 +9,10 @@ const taskSchema = new mongoose.Schema(
     assignee:    { type: String, default: "" },
 
     project:     { type: mongoose.Schema.Types.ObjectId, ref: "Project", required: true },
+    attachments: {
+      type: [{ type: mongoose.Schema.Types.ObjectId, ref: "File" }],
+      default: [],
+    },
   },
   { timestamps: true }
 );

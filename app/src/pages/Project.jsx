@@ -15,11 +15,20 @@ const STATUSES = [
 export default function Project() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { projects, deleteTask, reloadProject, deleteProject } = useProjects();
+  const {
+    projects,
+    deleteTask,
+    reloadProject,
+    deleteProject,
+    uploadTaskFile,
+    deleteTaskFile,
+  } = useProjects();
   const { user } = useAuth();
 
   const [allUsers, setAllUsers] = useState([]);       // для добавления участников (только админ)
   const [opErr, setOpErr] = useState("");
+  const [fileErrors, setFileErrors] = useState({});
+  const [uploadingFiles, setUploadingFiles] = useState({});
 
   const project = projects.find(p => p.id === id);
   useEffect(() => { if (!project) reloadProject(id).catch(() => {}); }, [id]); // на прямой переход
@@ -41,12 +50,39 @@ export default function Project() {
     api.listUsers().then(setAllUsers).catch(() => {});
   }, [isAdmin]);
 
+  useEffect(() => {
+    const ids = new Set((project.tasks || []).map(t => t.id));
+    setFileErrors(prev => Object.fromEntries(Object.entries(prev).filter(([key]) => ids.has(key))));
+    setUploadingFiles(prev => Object.fromEntries(Object.entries(prev).filter(([key]) => ids.has(key))));
+  }, [project.tasks]);
+
   async function handleDeleteTask(taskId) {
     try {
       await deleteTask(project.id, taskId);
-      await reloadProject(project.id);
     } catch (e) {
       alert(e.message || "Не удалось удалить задачу");
+    }
+  }
+
+  async function handleUploadFile(taskId, file) {
+    if (!file) return;
+    setFileErrors(prev => ({ ...prev, [taskId]: "" }));
+    setUploadingFiles(prev => ({ ...prev, [taskId]: true }));
+    try {
+      await uploadTaskFile(project.id, taskId, file);
+    } catch (e) {
+      setFileErrors(prev => ({ ...prev, [taskId]: e.message || "Не удалось загрузить файл" }));
+    } finally {
+      setUploadingFiles(prev => ({ ...prev, [taskId]: false }));
+    }
+  }
+
+  async function handleDeleteFile(taskId, fileId) {
+    setFileErrors(prev => ({ ...prev, [taskId]: "" }));
+    try {
+      await deleteTaskFile(project.id, taskId, fileId);
+    } catch (e) {
+      setFileErrors(prev => ({ ...prev, [taskId]: e.message || "Не удалось удалить файл" }));
     }
   }
 
@@ -146,6 +182,11 @@ export default function Project() {
             <TaskCard
               key={task.id}
               task={task}
+              canManage={canManage}
+              uploading={Boolean(uploadingFiles[task.id])}
+              fileError={fileErrors[task.id]}
+              onUploadFile={file => handleUploadFile(task.id, file)}
+              onDeleteFile={fileId => handleDeleteFile(task.id, fileId)}
               actions={canManage ? (
                 <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
                   <Link to={`/projects/${project.id}/edit-task/${task.id}`}>

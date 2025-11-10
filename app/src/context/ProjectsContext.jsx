@@ -64,6 +64,14 @@ export function ProjectsProvider({ children }) {
       await api.deleteTask(projectId, taskId);
       return actions.reloadProject(projectId);
     },
+    async uploadTaskFile(projectId, taskId, file) {
+      await api.uploadTaskFile(projectId, taskId, file);
+      return actions.reloadProject(projectId);
+    },
+    async deleteTaskFile(projectId, taskId, fileId) {
+      await api.deleteTaskFile(projectId, taskId, fileId);
+      return actions.reloadProject(projectId);
+    },
   };
 
   return (
