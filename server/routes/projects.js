@@ -3,8 +3,38 @@ import mongoose from "mongoose";
 import { User } from "../models/User.js";
 import { Project } from "../models/Project.js";
 import { Task } from "../models/Task.js";
+import { File } from "../models/File.js";
 import { authRequired, requireRole, memberOfProjectOrAdmin } from "../middleware/auth.js";
+import { removeStoredFile } from "../utils/fileStorage.js";
 const router = Router();
+
+function serializeFile(file, projectId, taskId) {
+  if (!file) return null;
+  const id = String(file._id || file.id);
+  return {
+    id,
+    originalName: file.originalName,
+    mimeType: file.mimeType,
+    size: file.size,
+    uploadedAt: file.createdAt,
+    downloadUrl: `/api/projects/${projectId}/tasks/${taskId}/files/${id}`,
+  };
+}
+
+function serializeTask(task) {
+  const projectId = String(task.project);
+  const taskId = String(task._id || task.id);
+  const attachments = (task.attachments || [])
+    .map(file => serializeFile(file, projectId, taskId))
+    .filter(Boolean);
+
+  return {
+    ...task,
+    id: taskId,
+    project: projectId,
+    attachments,
+  };
+}
 
 // GET /api/projects
 router.get("/", authRequired, async (_req, res, next) => { 
@@ -26,8 +56,8 @@ router.get("/:id", authRequired, memberOfProjectOrAdmin, async (req, res, next) 
   try {
     const proj = await Project.findById(req.params.id).lean();
     if (!proj) return res.status(404).json({ error: "Project not found" });
-    const tasks = await Task.find({ project: proj._id }).lean();
-    res.json({ ...proj, id: String(proj._id), tasks: tasks.map(t => ({ ...t, id: String(t._id) })) });
+    const tasks = await Task.find({ project: proj._id }).populate("attachments").lean();
+    res.json({ ...proj, id: String(proj._id), tasks: tasks.map(serializeTask) });
   } catch (e) { next(e); }
 });
 
@@ -60,7 +90,10 @@ router.delete("/:id", authRequired, requireRole("admin"), async (req, res, next)
   try {
     const proj = await Project.findByIdAndDelete(req.params.id);
     if (!proj) return res.status(404).json({ error: "Project not found" });
+    const files = await File.find({ project: proj._id }).lean();
+    await File.deleteMany({ project: proj._id });
     await Task.deleteMany({ project: proj._id });
+    await Promise.all(files.map(f => removeStoredFile(f.storedName).catch(() => {})));
     res.status(204).end();
   } catch (e) { next(e); }
 });

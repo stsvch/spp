@@ -3,6 +3,20 @@ const BASE = import.meta.env.VITE_API_URL;
 
 let accessToken = localStorage.getItem("access_token") || null;
 
+function readFileAsBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result || "";
+      const commaIndex = result.indexOf(",");
+      const base64 = commaIndex >= 0 ? result.slice(commaIndex + 1) : result;
+      resolve(base64);
+    };
+    reader.onerror = () => reject(new Error("Не удалось прочитать файл"));
+    reader.readAsDataURL(file);
+  });
+}
+
 export function setAccessToken(token) {
   accessToken = token;
   if (token) localStorage.setItem("access_token", token);
@@ -94,6 +108,21 @@ export const api = {
   createTask:(projectId, task) => coreFetch(`/projects/${projectId}/tasks`, { method:"POST", body: JSON.stringify(task) }),
   updateTask:(projectId, taskId, patch) => coreFetch(`/projects/${projectId}/tasks/${taskId}`, { method:"PATCH", body: JSON.stringify(patch) }),
   deleteTask:(projectId, taskId) => coreFetch(`/projects/${projectId}/tasks/${taskId}`, { method:"DELETE" }),
+  uploadTaskFile: async (projectId, taskId, file) => {
+    const base64 = await readFileAsBase64(file);
+    const payload = {
+      name: file.name,
+      type: file.type || "application/octet-stream",
+      size: file.size,
+      content: base64,
+    };
+    return coreFetch(`/projects/${projectId}/tasks/${taskId}/files`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+  deleteTaskFile:(projectId, taskId, fileId) =>
+    coreFetch(`/projects/${projectId}/tasks/${taskId}/files/${fileId}`, { method:"DELETE" }),
 
   // ==== users & members (для админа / менеджера участников) ====
   listUsers: () => coreFetch("/users"), // только admin
