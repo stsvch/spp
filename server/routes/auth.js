@@ -2,6 +2,7 @@ import { Router } from "express";
 import { User } from "../models/User.js";
 import { newRefreshRecord, signAccessToken, signRefreshToken } from "../utils/jwt.js";
 import { verifyRefresh } from "../middleware/auth.js";
+import { setRefreshCookie, clearRefreshCookie } from "../utils/authCookies.js";
 
 const router = Router();
 
@@ -58,17 +59,5 @@ router.post("/logout", verifyRefresh, async (req, res) => {
   clearRefreshCookie(res);
   res.status(204).end();
 });
-
-function setRefreshCookie(res, token) {
-  res.cookie("refresh", token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: false,
-    path: "/",
-  });
-}
-function clearRefreshCookie(res) {
-  res.clearCookie("refresh", { httpOnly: true, sameSite: "lax", secure: false, path: "/" });
-}
 
 export default router;

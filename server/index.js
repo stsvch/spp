@@ -10,6 +10,7 @@ import projectsRouter from "./routes/projects.js";
 import tasksRouter from "./routes/tasks.js";
 import usersRouter from "./routes/users.js";
 import { User } from "./models/User.js";
+import graphqlRouter from "./graphql/router.js";
 
 const app = express();
 
@@ -19,6 +20,8 @@ app.use(cors({
 }));
 app.use(express.json({ limit: "16mb" }));
 app.use(cookieParser());
+
+app.use("/api/graphql", graphqlRouter);
 
 app.use("/api/auth", authRouter);
 app.use("/api/projects", projectsRouter);
