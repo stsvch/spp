@@ -10,7 +10,6 @@ import projectsRouter from "./routes/projects.js";
 import tasksRouter from "./routes/tasks.js";
 import usersRouter from "./routes/users.js";
 import { User } from "./models/User.js";
-import bcrypt from "bcrypt";
 
 const app = express();
 
