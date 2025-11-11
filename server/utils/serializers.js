@@ -3,18 +3,15 @@ function toIso(value) {
   return value instanceof Date ? value.toISOString() : value;
 }
 
-export function serializeFile(file, projectId, taskId) {
+export function serializeFile(file) {
   if (!file) return null;
   const id = String(file._id || file.id);
-  const project = String(projectId ?? file.project);
-  const task = String(taskId ?? file.task);
   return {
     id,
     originalName: file.originalName,
     mimeType: file.mimeType,
     size: file.size,
     uploadedAt: toIso(file.createdAt),
-    downloadUrl: `/api/projects/${project}/tasks/${task}/files/${id}`,
   };
 }
 
@@ -23,7 +20,7 @@ export function serializeTask(task) {
   const projectId = String(task.project?._id || task.project);
   const taskId = String(task._id || task.id);
   const attachments = (task.attachments || [])
-    .map(file => serializeFile(file, projectId, taskId))
+    .map(file => serializeFile(file))
     .filter(Boolean);
 
   return {

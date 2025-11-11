@@ -5,10 +5,6 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 
 import { connectDB } from "./db.js";
-import authRouter from "./routes/auth.js";
-import projectsRouter from "./routes/projects.js";
-import tasksRouter from "./routes/tasks.js";
-import usersRouter from "./routes/users.js";
 import { User } from "./models/User.js";
 import graphqlRouter from "./graphql/router.js";
 
@@ -22,11 +18,6 @@ app.use(express.json({ limit: "16mb" }));
 app.use(cookieParser());
 
 app.use("/api/graphql", graphqlRouter);
-
-app.use("/api/auth", authRouter);
-app.use("/api/projects", projectsRouter);
-app.use("/api/projects", tasksRouter);
-app.use("/api/users", usersRouter);
 
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
 
