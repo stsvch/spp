@@ -22,16 +22,18 @@ export default function ProjectCreate() {
   }
 
   return (
-    <section>
-      <button onClick={() => navigate(-1)} style={{ marginBottom: 12 }}>← Назад</button>
-      <h1>Новый проект</h1>
+    <section className="page">
+      <button type="button" className="btn btn--ghost page-back" onClick={() => navigate(-1)}>← Назад</button>
+      <header className="page-header">
+        <h1 className="page-title">Новый проект</h1>
+      </header>
 
-      <form className="form form-wide" onSubmit={handleSubmit}>
+      <form className="form form-card" onSubmit={handleSubmit}>
         <div className="form-row">
           <label htmlFor="pname">Название проекта *</label>
           <input id="pname" value={name} onChange={e => setName(e.target.value)} placeholder="Например: CRM система" />
         </div>
-        {err && <div className="field-error" style={{ marginTop: 8 }}>{err}</div>}
+        {err && <div className="field-error field-error--block">{err}</div>}
         <div className="form-actions">
           <button type="submit">Создать</button>
         </div>

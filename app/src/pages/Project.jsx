@@ -118,92 +118,100 @@ export default function Project() {
   const candidates = allUsers.filter(u => !membersSet.has(String(u.id)));
 
   return (
-    <section>
-      <button onClick={() => navigate("/projects")} style={{ marginBottom: 12 }}>← К проектам</button>
-      <h1>{project.name}</h1>
-      {project.description && <p style={{ color: "#666", marginTop: -6 }}>{project.description}</p>}
-      {opErr && <div className="field-error" style={{ marginBottom: 12 }}>{opErr}</div>}
+    <section className="page">
+      <button type="button" className="btn btn--ghost page-back" onClick={() => navigate("/projects")}>← К проектам</button>
+      <header className="page-header">
+        <h1 className="page-title">{project.name}</h1>
+        {project.description && <p className="text-muted page-subtitle">{project.description}</p>}
+      </header>
+      {opErr && <div className="field-error field-error--block">{opErr}</div>}
 
-      <div style={{ display: "flex", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
+      <div className="button-group button-group--wrap page-actions">
         {canManage && (
-          <Link to={`/projects/${project.id}/new-task`}><button>+ Создать задачу</button></Link>
+          <Link to={`/projects/${project.id}/new-task`} className="btn">+ Создать задачу</Link>
         )}
         {isAdmin && (
           <>
-            <Link to={`/projects/${project.id}/edit`}><button>Редактировать проект</button></Link>
-            <button onClick={handleDeleteProject} style={{ background: "#ffe9e9", borderColor: "#f1c1c1" }}>
+            <Link to={`/projects/${project.id}/edit`} className="btn btn--ghost">Редактировать проект</Link>
+            <button type="button" className="btn btn--danger" onClick={handleDeleteProject}>
               Удалить проект
             </button>
           </>
         )}
       </div>
 
-      {/* Блок участников проекта (только для админа) */}
       {isAdmin && (
-        <div className="card" style={{ marginBottom: 12 }}>
-          <div style={{ fontWeight: 600, marginBottom: 8 }}>Участники</div>
+        <div className="card project-panel">
+          <div className="project-panel__title">Участники</div>
           {project.members?.length ? (
-            <ul style={{ margin: 0, paddingLeft: 16 }}>
+            <ul className="project-panel__list">
               {project.members.map(uid => {
                 const u = allUsers.find(x => String(x.id) === String(uid));
                 return (
-                  <li key={uid} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <li key={uid} className="project-panel__list-item">
                     <span>{u ? `${u.login} (${u.role})` : uid}</span>
-                    <button onClick={() => removeMember(uid)}>Удалить</button>
+                    <button type="button" className="btn btn--ghost btn--xs" onClick={() => removeMember(uid)}>
+                      Удалить
+                    </button>
                   </li>
                 );
               })}
             </ul>
-          ) : <small>Пока нет участников</small>}
+          ) : <small className="text-muted">Пока нет участников</small>}
 
           {!!candidates.length && (
-            <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
+            <div className="project-panel__controls">
               <select id="member-select" defaultValue="">
                 <option value="" disabled>Выберите пользователя…</option>
                 {candidates.map(u => (
                   <option key={u.id} value={u.id}>{u.login} ({u.role})</option>
                 ))}
               </select>
-              <button onClick={() => {
-                const sel = document.getElementById("member-select");
-                if (sel?.value) addMember(sel.value);
-              }}>Добавить</button>
+              <button
+                type="button"
+                className="btn"
+                onClick={() => {
+                  const sel = document.getElementById("member-select");
+                  if (sel?.value) addMember(sel.value);
+                }}
+              >
+                Добавить
+              </button>
             </div>
           )}
         </div>
       )}
 
       <div className="board">
-  {STATUSES.map(s => (
-    <div key={s.id} className="column">
-      <h3>{s.label}</h3>
-      {(byStatus[s.id] ?? []).length
-        ? byStatus[s.id].map(task => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              canManage={canManage}
-              uploading={Boolean(uploadingFiles[task.id])}
-              fileError={fileErrors[task.id]}
-              onUploadFile={file => handleUploadFile(task.id, file)}
-              onDeleteFile={fileId => handleDeleteFile(task.id, fileId)}
-              actions={canManage ? (
-                <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
-                  <Link to={`/projects/${project.id}/edit-task/${task.id}`}>
-                    <button type="button">Редактировать</button>
-                  </Link>
-                  <button type="button" onClick={() => handleDeleteTask(task.id)}>
-                    Удалить
-                  </button>
-                </div>
-              ) : null}
-            />
-          ))
-        : <small>Нет задач</small>}
-    </div>
-  ))}
-</div>
-
+        {STATUSES.map(s => (
+          <div key={s.id} className="column">
+            <h3 className="column__title">{s.label}</h3>
+            {(byStatus[s.id] ?? []).length
+              ? byStatus[s.id].map(task => (
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    canManage={canManage}
+                    uploading={Boolean(uploadingFiles[task.id])}
+                    fileError={fileErrors[task.id]}
+                    onUploadFile={file => handleUploadFile(task.id, file)}
+                    onDeleteFile={fileId => handleDeleteFile(task.id, fileId)}
+                    actions={canManage ? (
+                      <div className="button-group button-group--wrap">
+                        <Link to={`/projects/${project.id}/edit-task/${task.id}`} className="btn btn--ghost btn--xs">
+                          Редактировать
+                        </Link>
+                        <button type="button" className="btn btn--ghost btn--xs" onClick={() => handleDeleteTask(task.id)}>
+                          Удалить
+                        </button>
+                      </div>
+                    ) : null}
+                  />
+                ))
+              : <small className="text-muted">Нет задач</small>}
+          </div>
+        ))}
+      </div>
     </section>
   );
 }

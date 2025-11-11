@@ -36,11 +36,13 @@ export default function ProjectEdit() {
   }
 
   return (
-    <section>
-      <button onClick={() => navigate(-1)} style={{ marginBottom: 12 }}>← Назад</button>
-      <h1>Редактирование проекта</h1>
+    <section className="page">
+      <button type="button" className="btn btn--ghost page-back" onClick={() => navigate(-1)}>← Назад</button>
+      <header className="page-header">
+        <h1 className="page-title">Редактирование проекта</h1>
+      </header>
 
-      <form className="form form-wide" onSubmit={submit}>
+      <form className="form form-card" onSubmit={submit}>
         <div className="form-row">
           <label htmlFor="pname">Название проекта *</label>
           <input id="pname" value={name} onChange={e => setName(e.target.value)} />
@@ -49,7 +51,7 @@ export default function ProjectEdit() {
           <label htmlFor="pdesc">Описание</label>
           <textarea id="pdesc" rows={4} value={description} onChange={e => setDescription(e.target.value)} />
         </div>
-        {err && <div className="field-error" style={{ marginTop: 8 }}>{err}</div>}
+        {err && <div className="field-error field-error--block">{err}</div>}
         <div className="form-actions"><button type="submit">Сохранить</button></div>
       </form>
     </section>
