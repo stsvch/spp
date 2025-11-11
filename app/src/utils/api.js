@@ -24,6 +24,36 @@ export function setAccessToken(token) {
   else localStorage.removeItem("access_token");
 }
 
+export function getAccessToken() {
+  return accessToken;
+}
+
+export function resolveDownloadUrl(path, token = accessToken) {
+  if (!path) return "";
+
+  let href = path;
+  const base = BASE || (typeof window !== "undefined" ? window.location.origin : "");
+
+  if (base) {
+    try {
+      href = new URL(path, base).toString();
+    } catch {
+      href = path;
+    }
+  }
+
+  if (!token) return href;
+
+  try {
+    const url = new URL(href);
+    url.searchParams.set("token", token);
+    return url.toString();
+  } catch {
+    const joiner = href.includes("?") ? "&" : "?";
+    return `${href}${joiner}token=${encodeURIComponent(token)}`;
+  }
+}
+
 async function graphqlRequest(query, { variables = {}, field, tryRefresh = true } = {}) {
   const headers = {
     Accept: "application/json",

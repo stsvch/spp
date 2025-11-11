@@ -6,7 +6,12 @@ const { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } = process.env;
 export async function authRequired(req, res, next) {
   try {
     const hdr = req.headers.authorization || "";
-    const [, token] = hdr.split(" ");
+    let [, token] = hdr.split(" ");
+    if (!token) {
+      const queryToken = req.query?.token || req.query?.access_token;
+      if (Array.isArray(queryToken)) token = queryToken[0];
+      else token = queryToken;
+    }
     if (!token) return res.status(401).json({ error: "No token" });
 
     const payload = jwt.verify(token, ACCESS_TOKEN_SECRET);

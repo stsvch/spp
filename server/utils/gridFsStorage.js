@@ -32,7 +32,22 @@ export async function saveBufferToGridFS(buffer, filename, contentType) {
     });
 
     uploadStream.once("error", reject);
-    uploadStream.once("finish", file => resolve(file._id));
+    uploadStream.once("finish", file => {
+      if (file?._id) {
+        resolve(file._id);
+        return;
+      }
+
+      // The Node.js MongoDB driver can emit the finish event without a file
+      // descriptor on newer versions. Fall back to the stream's `id` property
+      // in that case to keep uploads working across driver releases.
+      if (uploadStream.id) {
+        resolve(uploadStream.id);
+        return;
+      }
+
+      reject(new Error("File upload completed without an id"));
+    });
 
     Readable.from(buffer).pipe(uploadStream);
   });

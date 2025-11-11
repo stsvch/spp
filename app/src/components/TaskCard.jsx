@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { getAccessToken, resolveDownloadUrl } from "../utils/api.js";
 
 export default function TaskCard({
   task,
@@ -12,6 +13,7 @@ export default function TaskCard({
   if (!task) return null;
 
   const inputRef = useRef(null);
+  const token = getAccessToken();
 
   function handleFileChange(e) {
     const file = e.target.files?.[0];
@@ -41,23 +43,26 @@ export default function TaskCard({
         <div style={{ marginTop: 8 }}>
           <div style={{ fontWeight: 500, fontSize: 13, marginBottom: 4 }}>Файлы</div>
           <ul style={{ margin: 0, paddingLeft: 16, display: "flex", flexDirection: "column", gap: 4 }}>
-            {task.attachments.map(file => (
-              <li key={file.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <a href={file.downloadUrl} target="_blank" rel="noopener noreferrer">
-                  {file.originalName}
-                </a>
-                <small style={{ color: "#666" }}>({formatSize(file.size)})</small>
-                {canManage && onDeleteFile && (
-                  <button
-                    type="button"
-                    onClick={() => onDeleteFile(file.id)}
-                    style={{ padding: "2px 6px", fontSize: 12 }}
-                  >
-                    Удалить
-                  </button>
-                )}
-              </li>
-            ))}
+            {task.attachments.map(file => {
+              const href = resolveDownloadUrl(file.downloadUrl, token);
+              return (
+                <li key={file.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <a href={href} target="_blank" rel="noopener noreferrer">
+                    {file.originalName}
+                  </a>
+                  <small style={{ color: "#666" }}>({formatSize(file.size)})</small>
+                  {canManage && onDeleteFile && (
+                    <button
+                      type="button"
+                      onClick={() => onDeleteFile(file.id)}
+                      style={{ padding: "2px 6px", fontSize: 12 }}
+                    >
+                      Удалить
+                    </button>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}
