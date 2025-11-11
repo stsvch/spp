@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { getAccessToken } from "../utils/api.js";
+import { getAccessToken, resolveDownloadUrl } from "../utils/api.js";
 
 export default function TaskCard({
   task,
@@ -42,20 +42,18 @@ export default function TaskCard({
           <div className="task-card__attachments-title">Файлы</div>
           <ul className="task-card__attachments-list">
             {task.attachments.map(file => {
-              const url = token
-                ? `${file.downloadUrl}${file.downloadUrl.includes("?") ? "&" : "?"}token=${encodeURIComponent(token)}`
-                : file.downloadUrl;
+              const href = resolveDownloadUrl(file.downloadUrl, token);
               return (
-                <li key={file.id} className="task-card__attachment-item">
-                  <a href={url} target="_blank" rel="noopener noreferrer" className="task-card__attachment-link">
+                <li key={file.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <a href={href} target="_blank" rel="noopener noreferrer">
                     {file.originalName}
                   </a>
-                  <span className="task-card__attachment-size">({formatSize(file.size)})</span>
+                  <small style={{ color: "#666" }}>({formatSize(file.size)})</small>
                   {canManage && onDeleteFile && (
                     <button
                       type="button"
-                      className="btn btn--ghost btn--xs"
                       onClick={() => onDeleteFile(file.id)}
+                      style={{ padding: "2px 6px", fontSize: 12 }}
                     >
                       Удалить
                     </button>
