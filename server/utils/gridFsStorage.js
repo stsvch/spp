@@ -58,6 +58,17 @@ export function openDownloadStream(storageId) {
   return grid.openDownloadStream(toObjectId(storageId));
 }
 
+export async function readBufferFromGridFS(storageId) {
+  const stream = openDownloadStream(storageId);
+  const chunks = [];
+
+  return new Promise((resolve, reject) => {
+    stream.on("data", chunk => chunks.push(chunk));
+    stream.once("error", reject);
+    stream.once("end", () => resolve(Buffer.concat(chunks)));
+  });
+}
+
 export async function deleteFromGridFS(storageId) {
   const grid = ensureBucket();
   try {
