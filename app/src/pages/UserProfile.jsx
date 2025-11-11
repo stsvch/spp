@@ -1,36 +1,45 @@
 import { Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext.jsx"; 
+import { useAuth } from "../context/AuthContext.jsx";
 
 export default function UserProfile() {
   const { user, logout } = useAuth();
 
   if (!user) {
     return (
-      <section>
-        <h1>Профиль</h1>
-        <p>Вы не авторизованы.</p>
-        <Link to="/login"><button>Войти</button></Link>
-        <Link to="/register" style={{ marginLeft: 8 }}><button>Регистрация</button></Link>
+      <section className="page">
+        <header className="page-header">
+          <h1 className="page-title">Профиль</h1>
+        </header>
+        <p className="text-muted">Вы не авторизованы.</p>
+        <div className="button-group">
+          <Link to="/login" className="btn">Войти</Link>
+          <Link to="/register" className="btn btn--ghost">Регистрация</Link>
+        </div>
       </section>
     );
   }
 
   return (
-    <section>
-      <h1>Профиль пользователя</h1>
+    <section className="page">
+      <header className="page-header">
+        <h1 className="page-title">Профиль пользователя</h1>
+      </header>
 
-      <div className="card" style={{ maxWidth: 520 }}>
-        <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 6 }}>{user.login}</div>
-        <div><b>Роль:</b> {user.role === "admin" ? "Администратор" : "Участник команды"}</div>
-        <div style={{ color: "#666", marginTop: 6 }}><small>ID: {user.id}</small></div>
+      <div className="card profile-card">
+        <div className="profile-card__name">{user.login}</div>
+        <div className="profile-card__role">
+          <span className="text-muted">Роль:</span> {user.role === "admin" ? "Администратор" : "Участник команды"}
+        </div>
+        <div className="profile-card__meta">ID: {user.id}</div>
       </div>
 
-      <div style={{ marginTop: 12 }}>
-        <button onClick={logout}>Выйти</button>
+      <div className="button-group">
+        <button type="button" className="btn" onClick={logout}>Выйти</button>
       </div>
 
-      <p style={{ color: "#666", marginTop: 16 }}>
-        Права доступа: администратор может создавать/редактировать/удалять проекты и управлять пользователями; участник работает только в своих проектах.
+      <p className="text-muted profile-card__note">
+        Права доступа: администратор может создавать/редактировать/удалять проекты и управлять пользователями; участник работает
+        только в своих проектах.
       </p>
     </section>
   );

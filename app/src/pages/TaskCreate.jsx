@@ -80,19 +80,21 @@ export default function TaskCreate() {
   const pageTitle = existing ? "Редактировать задачу" : "Новая задача";
 
   return (
-    <section>
-      <button onClick={() => navigate(-1)} style={{ marginBottom: 12 }}>← Назад</button>
-      <h1>{pageTitle}</h1>
-      <p style={{ color: "#666", marginTop: -6 }}>Проект: <b>{project.name}</b></p>
+    <section className="page">
+      <button type="button" className="btn btn--ghost page-back" onClick={() => navigate(-1)}>← Назад</button>
+      <header className="page-header">
+        <h1 className="page-title">{pageTitle}</h1>
+        <p className="text-muted page-subtitle">Проект: <b>{project.name}</b></p>
+      </header>
 
       {!canManage && (
-        <div className="card" style={{ background: "#fff7f7", borderColor: "#f2caca", marginBottom: 12 }}>
+        <div className="card card--warning">
           У вас нет прав на создание/редактирование задач в этом проекте.
         </div>
       )}
 
-      <form className="form form-wide" onSubmit={handleSubmit} noValidate>
-        {!!error && <div className="field-error" style={{ marginBottom: 10 }}>{error}</div>}
+      <form className="form form-card" onSubmit={handleSubmit} noValidate>
+        {!!error && <div className="field-error field-error--block">{error}</div>}
 
         <div className="form-row">
           <label htmlFor="title">Название *</label>
@@ -103,7 +105,7 @@ export default function TaskCreate() {
             aria-invalid={titleInvalid}
             disabled={!canManage}
           />
-          {titleInvalid && <div className="field-error">Укажите название</div>}
+          {titleInvalid && <div className="field-error field-error--inline">Укажите название</div>}
         </div>
 
         <div className="form-row">

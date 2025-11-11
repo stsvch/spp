@@ -64,51 +64,51 @@ export default function Home() {
   }, [projects, user]);
 
   return (
-    <section>
-      <h1>Главная</h1>
+    <section className="page">
+      <header className="page-header">
+        <h1 className="page-title">Главная</h1>
+      </header>
 
       {!user ? (
-        <div className="card" style={{ maxWidth: 520 }}>
-          <p>Вы не авторизованы.</p>
-          <div style={{ display: "flex", gap: 8 }}>
-            <Link to="/login"><button>Войти</button></Link>
-            <Link to="/register"><button>Регистрация</button></Link>
+        <div className="card card--callout">
+          <p className="text-muted">Вы не авторизованы.</p>
+          <div className="button-group">
+            <Link to="/login" className="btn">Войти</Link>
+            <Link to="/register" className="btn btn--ghost">Регистрация</Link>
           </div>
         </div>
       ) : (
         <>
-          {/* Мои задачи */}
-          <h2 style={{ marginTop: 12 }}>Мои задачи</h2>
+          <h2 className="section-title">Мои задачи</h2>
           <div className="board">
             {STATUSES.map(s => (
               <div key={s.id} className="column">
-                <h3>{s.label}</h3>
+                <h3 className="column__title">{s.label}</h3>
                 {(byStatus[s.id] ?? []).length ? (
                   byStatus[s.id].map(task => (
                     <TaskCard
                       key={task.id}
                       task={task}
                       actions={
-                        <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
-                          <button onClick={() => navigate(`/projects/${task.projectId}`)}>
+                        <div className="button-group button-group--wrap">
+                          <button type="button" onClick={() => navigate(`/projects/${task.projectId}`)}>
                             Открыть проект
                           </button>
-                          <Link to={`/projects/${task.projectId}/edit-task/${task.id}`}>
-                            <button>Редактировать</button>
+                          <Link to={`/projects/${task.projectId}/edit-task/${task.id}`} className="btn btn--ghost">
+                            Редактировать
                           </Link>
                         </div>
                       }
                     />
                   ))
                 ) : (
-                  <small>Нет задач</small>
+                  <small className="text-muted">Нет задач</small>
                 )}
               </div>
             ))}
           </div>
 
-          {/* Мои проекты (кликабельные карточки, как и раньше) */}
-          <h2 style={{ marginTop: 20 }}>Мои проекты</h2>
+          <h2 className="section-title">Мои проекты</h2>
           <ProjectList
             projects={
               user.role === "admin"

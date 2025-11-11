@@ -38,10 +38,12 @@ export default function App() {
     <AuthProvider>
       <ProjectsProvider>
         <BrowserRouter>
-          <Nav />
-          <main style={{ padding: "16px" }}>
-            <Routes>
-              <Route path="/" element={<Home />} />
+          <div className="app-shell">
+            <Nav />
+            <main className="app-main">
+              <div className="app-container">
+                <Routes>
+                  <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
 
@@ -81,9 +83,11 @@ export default function App() {
                 element={<ProtectedRoute><AdminRoute><UsersAdmin /></AdminRoute></ProtectedRoute>}
               />
 
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </main>
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </div>
+            </main>
+          </div>
         </BrowserRouter>
       </ProjectsProvider>
     </AuthProvider>

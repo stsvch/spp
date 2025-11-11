@@ -31,18 +31,16 @@ export default function TaskCard({
   }
 
   return (
-    <div className="card">
-      <div style={{ fontWeight: 500 }}>
-        {task.title}
-      </div>
+    <div className="card task-card">
+      <div className="task-card__title">{task.title}</div>
 
-      {task.description && <small>{task.description}</small>}
-      {task.assignee && <small>Исполнитель: {task.assignee}</small>}
+      {task.description && <div className="task-card__description">{task.description}</div>}
+      {task.assignee && <div className="task-card__meta">Исполнитель: {task.assignee}</div>}
 
       {!!task.attachments?.length && (
-        <div style={{ marginTop: 8 }}>
-          <div style={{ fontWeight: 500, fontSize: 13, marginBottom: 4 }}>Файлы</div>
-          <ul style={{ margin: 0, paddingLeft: 16, display: "flex", flexDirection: "column", gap: 4 }}>
+        <div className="task-card__attachments">
+          <div className="task-card__attachments-title">Файлы</div>
+          <ul className="task-card__attachments-list">
             {task.attachments.map(file => {
               const href = resolveDownloadUrl(file.downloadUrl, token);
               return (
@@ -68,11 +66,11 @@ export default function TaskCard({
       )}
 
       {canManage && onUploadFile && (
-        <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 6 }}>
+        <div className="task-card__upload">
           <input
             ref={inputRef}
             type="file"
-            style={{ display: "none" }}
+            className="task-card__upload-input"
             onChange={handleFileChange}
             disabled={uploading}
           />
@@ -83,11 +81,11 @@ export default function TaskCard({
           >
             {uploading ? "Загрузка..." : "Прикрепить файл"}
           </button>
-          {fileError && <div className="field-error" style={{ marginTop: 0 }}>{fileError}</div>}
+          {fileError && <div className="field-error field-error--inline">{fileError}</div>}
         </div>
       )}
 
-      {actions}
+      {actions && <div className="task-card__actions">{actions}</div>}
     </div>
   );
 }
