@@ -6,8 +6,13 @@ const ProjectsContext = createContext(null);
 function normalizeProject(project) {
   if (!project) return project;
 
-  const hasFullTasks = Array.isArray(project.tasks)
+  const hasTasksArray = Array.isArray(project.tasks);
+  const tasksMatchCount = typeof project.tasksCount === "number"
+    ? (project.tasks?.length ?? 0) === project.tasksCount
+    : true;
+  const tasksAreComplete = hasTasksArray
     && project.tasks.every(task => task && typeof task.status === "string");
+  const hasFullTasks = hasTasksArray && tasksMatchCount && tasksAreComplete;
 
   return {
     ...project,
