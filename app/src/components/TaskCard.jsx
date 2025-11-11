@@ -31,33 +31,31 @@ export default function TaskCard({
   }
 
   return (
-    <div className="card">
-      <div style={{ fontWeight: 500 }}>
-        {task.title}
-      </div>
+    <div className="card task-card">
+      <div className="task-card__title">{task.title}</div>
 
-      {task.description && <small>{task.description}</small>}
-      {task.assignee && <small>Исполнитель: {task.assignee}</small>}
+      {task.description && <div className="task-card__description">{task.description}</div>}
+      {task.assignee && <div className="task-card__meta">Исполнитель: {task.assignee}</div>}
 
       {!!task.attachments?.length && (
-        <div style={{ marginTop: 8 }}>
-          <div style={{ fontWeight: 500, fontSize: 13, marginBottom: 4 }}>Файлы</div>
-          <ul style={{ margin: 0, paddingLeft: 16, display: "flex", flexDirection: "column", gap: 4 }}>
+        <div className="task-card__attachments">
+          <div className="task-card__attachments-title">Файлы</div>
+          <ul className="task-card__attachments-list">
             {task.attachments.map(file => {
               const url = token
                 ? `${file.downloadUrl}${file.downloadUrl.includes("?") ? "&" : "?"}token=${encodeURIComponent(token)}`
                 : file.downloadUrl;
               return (
-                <li key={file.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <a href={url} target="_blank" rel="noopener noreferrer">
+                <li key={file.id} className="task-card__attachment-item">
+                  <a href={url} target="_blank" rel="noopener noreferrer" className="task-card__attachment-link">
                     {file.originalName}
                   </a>
-                  <small style={{ color: "#666" }}>({formatSize(file.size)})</small>
+                  <span className="task-card__attachment-size">({formatSize(file.size)})</span>
                   {canManage && onDeleteFile && (
                     <button
                       type="button"
+                      className="btn btn--ghost btn--xs"
                       onClick={() => onDeleteFile(file.id)}
-                      style={{ padding: "2px 6px", fontSize: 12 }}
                     >
                       Удалить
                     </button>
@@ -70,11 +68,11 @@ export default function TaskCard({
       )}
 
       {canManage && onUploadFile && (
-        <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 6 }}>
+        <div className="task-card__upload">
           <input
             ref={inputRef}
             type="file"
-            style={{ display: "none" }}
+            className="task-card__upload-input"
             onChange={handleFileChange}
             disabled={uploading}
           />
@@ -85,11 +83,11 @@ export default function TaskCard({
           >
             {uploading ? "Загрузка..." : "Прикрепить файл"}
           </button>
-          {fileError && <div className="field-error" style={{ marginTop: 0 }}>{fileError}</div>}
+          {fileError && <div className="field-error field-error--inline">{fileError}</div>}
         </div>
       )}
 
-      {actions}
+      {actions && <div className="task-card__actions">{actions}</div>}
     </div>
   );
 }

@@ -20,20 +20,23 @@ export default function Register() {
   }
 
   return (
-    <section>
-      <h1>Регистрация</h1>
-      <form className="form form-wide" onSubmit={submit}>
+    <section className="page page--centered">
+      <header className="page-header">
+        <h1 className="page-title">Регистрация</h1>
+        <p className="text-muted">Создайте аккаунт, чтобы управлять проектами и задачами.</p>
+      </header>
+      <form className="form form-card" onSubmit={submit}>
         <div className="form-row">
-          <label>Логин</label>
-          <input value={form.login} onChange={e=>setForm(f=>({...f,login:e.target.value}))}/>
+          <label htmlFor="login">Логин</label>
+          <input id="login" value={form.login} onChange={e=>setForm(f=>({...f,login:e.target.value}))}/>
         </div>
         <div className="form-row">
-          <label>Пароль</label>
-          <input type="password" value={form.password} onChange={e=>setForm(f=>({...f,password:e.target.value}))}/>
+          <label htmlFor="password">Пароль</label>
+          <input id="password" type="password" value={form.password} onChange={e=>setForm(f=>({...f,password:e.target.value}))}/>
         </div>
-        {err && <div className="field-error">{err}</div>}
-        <div className="form-actions"><button>Создать</button></div>
-        <p>Уже есть аккаунт? <Link to="/login">Войти</Link></p>
+        {err && <div className="field-error field-error--block">{err}</div>}
+        <div className="form-actions"><button type="submit">Создать</button></div>
+        <p className="text-muted">Уже есть аккаунт? <Link to="/login">Войти</Link></p>
       </form>
     </section>
   );

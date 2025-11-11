@@ -18,18 +18,20 @@ export default function UsersAdmin() {
   }, []);
 
   return (
-    <section>
-      <h1>Пользователи</h1>
-      {err && <div className="field-error" style={{ marginBottom: 12 }}>{err}</div>}
+    <section className="page">
+      <header className="page-header">
+        <h1 className="page-title">Пользователи</h1>
+      </header>
+      {err && <div className="field-error field-error--block">{err}</div>}
       {users.length === 0 ? (
-        <p>Пока нет пользователей.</p>
+        <p className="text-muted">Пока нет пользователей.</p>
       ) : (
-        <div style={{ maxWidth: 720 }}>
+        <div className="user-grid">
           {users.map(u => (
-            <div key={u.id} className="card" style={{ marginBottom: 8 }}>
-              <div style={{ fontWeight: 600 }}>{u.login}</div>
-              <small>Роль: {u.role}</small>
-              <div><small>ID: {u.id}</small></div>
+            <div key={u.id} className="card user-card">
+              <div className="user-card__name">{u.login}</div>
+              <div className="user-card__meta">Роль: {u.role}</div>
+              <div className="user-card__meta">ID: {u.id}</div>
             </div>
           ))}
         </div>

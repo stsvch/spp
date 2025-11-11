@@ -15,13 +15,13 @@ export default function Projects() {
   }, [fetchProjects]);
 
   return (
-    <section>
-      <h1>Проекты</h1>
-      <div style={{ marginBottom: 12 }}>
+    <section className="page">
+      <header className="page-header">
+        <h1 className="page-title">Проекты</h1>
         {user?.role === "admin" && (
-          <Link to="/projects/new"><button>+ Создать проект</button></Link>
+          <Link to="/projects/new" className="btn">+ Создать проект</Link>
         )}
-      </div>
+      </header>
       <ProjectList projects={projects} onOpenProject={(id) => navigate(`/projects/${id}`)} />
     </section>
   );
