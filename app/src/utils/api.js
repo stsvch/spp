@@ -24,6 +24,10 @@ export function setAccessToken(token) {
   else localStorage.removeItem("access_token");
 }
 
+export function getAccessToken() {
+  return accessToken;
+}
+
 async function graphqlRequest(query, { variables = {}, field, tryRefresh = true } = {}) {
   const headers = {
     Accept: "application/json",
