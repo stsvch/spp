@@ -3,11 +3,23 @@ import { api } from "../utils/api.js";
 
 const ProjectsContext = createContext(null);
 
+function normalizeProject(project) {
+  if (!project) return project;
+
+  const hasFullTasks = Array.isArray(project.tasks)
+    && project.tasks.every(task => task && typeof task.status === "string");
+
+  return {
+    ...project,
+    tasks: hasFullTasks ? project.tasks : undefined,
+  };
+}
+
 function reducer(state, action) {
   switch (action.type) {
-    case "SET_PROJECTS":   return action.payload;
-    case "UPDATE_PROJECT": return state.map(p => p.id === action.payload.id ? action.payload : p);
-    case "ADD_PROJECT":    return [...state, action.payload];
+    case "SET_PROJECTS":   return action.payload.map(normalizeProject);
+    case "UPDATE_PROJECT": return state.map(p => p.id === action.payload.id ? normalizeProject(action.payload) : p);
+    case "ADD_PROJECT":    return [...state, normalizeProject(action.payload)];
     case "REMOVE_PROJECT": return state.filter(p => p.id !== action.payload);
     default: return state;
   }
