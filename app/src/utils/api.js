@@ -24,36 +24,6 @@ export function setAccessToken(token) {
   else localStorage.removeItem("access_token");
 }
 
-export function getAccessToken() {
-  return accessToken;
-}
-
-export function resolveDownloadUrl(path, token = accessToken) {
-  if (!path) return "";
-
-  let href = path;
-  const base = BASE || (typeof window !== "undefined" ? window.location.origin : "");
-
-  if (base) {
-    try {
-      href = new URL(path, base).toString();
-    } catch {
-      href = path;
-    }
-  }
-
-  if (!token) return href;
-
-  try {
-    const url = new URL(href);
-    url.searchParams.set("token", token);
-    return url.toString();
-  } catch {
-    const joiner = href.includes("?") ? "&" : "?";
-    return `${href}${joiner}token=${encodeURIComponent(token)}`;
-  }
-}
-
 async function graphqlRequest(query, { variables = {}, field, tryRefresh = true } = {}) {
   const headers = {
     Accept: "application/json",
@@ -197,7 +167,6 @@ export const api = {
             mimeType
             size
             uploadedAt
-            downloadUrl
           }
         }
       }
@@ -219,7 +188,7 @@ export const api = {
           title
           status
           assignee
-          attachments { id downloadUrl originalName mimeType size uploadedAt }
+          attachments { id originalName mimeType size uploadedAt }
         }
       }
     }`,
@@ -250,7 +219,6 @@ export const api = {
             mimeType
             size
             uploadedAt
-            downloadUrl
           }
         }
       }
@@ -305,7 +273,6 @@ export const api = {
             mimeType
             size
             uploadedAt
-            downloadUrl
           }
           task {
             id
@@ -320,7 +287,6 @@ export const api = {
               mimeType
               size
               uploadedAt
-              downloadUrl
             }
           }
         }
@@ -333,6 +299,21 @@ export const api = {
       deleteTaskFile(projectId: $projectId, taskId: $taskId, fileId: $fileId)
     }`,
     { variables: { projectId, taskId, fileId }, field: "deleteTaskFile" }
+  ),
+  downloadTaskFile: (projectId, taskId, fileId) => graphqlRequest(
+    `query DownloadTaskFile($projectId: ID!, $taskId: ID!, $fileId: ID!) {
+      downloadTaskFile(projectId: $projectId, taskId: $taskId, fileId: $fileId) {
+        content
+        file {
+          id
+          originalName
+          mimeType
+          size
+          uploadedAt
+        }
+      }
+    }`,
+    { variables: { projectId, taskId, fileId }, field: "downloadTaskFile" }
   ),
 
   listUsers: () => graphqlRequest(

@@ -458,6 +458,16 @@ small {
 .task-card__attachment-link {
   color: var(--color-primary);
   font-weight: 500;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.task-card__attachment-link:hover,
+.task-card__attachment-link:focus {
+  text-decoration: underline;
 }
 
 .task-card__attachment-size {

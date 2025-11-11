@@ -11,7 +11,6 @@ export const typeDefs = `#graphql
     mimeType: String!
     size: Int!
     uploadedAt: String
-    downloadUrl: String!
   }
 
   type Task {
@@ -49,6 +48,11 @@ export const typeDefs = `#graphql
   type UploadFilePayload {
     file: File!
     task: Task!
+  }
+
+  type FileDownload {
+    file: File!
+    content: String!
   }
 
   input ProjectInput {
@@ -94,6 +98,7 @@ export const typeDefs = `#graphql
     me: User
     projects: [Project!]!
     project(id: ID!): Project
+    downloadTaskFile(projectId: ID!, taskId: ID!, fileId: ID!): FileDownload!
     users: [User!]!
   }
 

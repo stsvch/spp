@@ -6,7 +6,7 @@ import { Project } from "../models/Project.js";
 import { Task } from "../models/Task.js";
 import { File } from "../models/File.js";
 import { serializeProjectSummary, serializeProjectWithTasks, serializeTask, serializeFile } from "../utils/serializers.js";
-import { deleteFromGridFS, saveBufferToGridFS } from "../utils/gridFsStorage.js";
+import { deleteFromGridFS, saveBufferToGridFS, readBufferFromGridFS } from "../utils/gridFsStorage.js";
 import { clearRefreshCookie, setRefreshCookie } from "../utils/authCookies.js";
 import { newRefreshRecord, signAccessToken, signRefreshToken } from "../utils/jwt.js";
 
@@ -107,6 +107,25 @@ export const resolvers = {
       const plainProject = project.toObject();
       const tasks = await Task.find({ project: project._id }).populate("attachments").lean();
       return serializeProjectWithTasks(plainProject, tasks);
+    },
+    downloadTaskFile: async (_root, { projectId, taskId, fileId }, ctx) => {
+      const project = await requireProjectAccess(projectId, ctx);
+      const task = await Task.findOne({ _id: taskId, project: project._id }).lean();
+      if (!task) throw createError("Task not found", "NOT_FOUND");
+      const file = await File.findOne({ _id: fileId, project: project._id, task: task._id }).lean();
+      if (!file) throw createError("File not found", "NOT_FOUND");
+
+      let buffer;
+      try {
+        buffer = await readBufferFromGridFS(file.storageId);
+      } catch (err) {
+        throw createError("File missing in storage", "NOT_FOUND");
+      }
+
+      return {
+        file: serializeFile(file),
+        content: buffer.toString("base64"),
+      };
     },
     users: async (_root, _args, ctx) => {
       requireAdmin(ctx);
@@ -284,7 +303,7 @@ export const resolvers = {
       const updatedTask = await Task.findById(task._id).populate("attachments").lean();
 
       return {
-        file: serializeFile(file.toObject(), project._id, task._id),
+        file: serializeFile(file.toObject()),
         task: serializeTask(updatedTask),
       };
     },
