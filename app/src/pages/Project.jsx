@@ -29,20 +29,41 @@ export default function Project() {
   const [opErr, setOpErr] = useState("");
   const [fileErrors, setFileErrors] = useState({});
   const [uploadingFiles, setUploadingFiles] = useState({});
+  const [loadingProject, setLoadingProject] = useState(false);
+  const [loadError, setLoadError] = useState("");
 
   const project = projects.find(p => p.id === id);
-  useEffect(() => { if (!project) reloadProject(id).catch(() => {}); }, [id]); // на прямой переход
-  if (!project) return <p>Проект не найден.</p>;
+
+  useEffect(() => {
+    if (!id) return;
+    const hasFullTasks = Array.isArray(project?.tasks);
+    if (project && hasFullTasks) return;
+
+    let ignore = false;
+    setLoadError("");
+    setLoadingProject(true);
+    reloadProject(id)
+      .catch(err => {
+        if (!ignore) setLoadError(err?.message || "Не удалось загрузить проект");
+      })
+      .finally(() => {
+        if (!ignore) setLoadingProject(false);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [id, project?.id, project?.tasks, reloadProject]);
 
   const isAdmin = user?.role === "admin";
-  const isMember = (project.members ?? []).includes(user?.id);
+  const isMember = (project?.members ?? []).includes(user?.id);
   const canManage = isAdmin || isMember;
 
   const byStatus = useMemo(() => {
     const map = { "todo": [], "in-progress": [], "done": [] };
-    for (const t of project.tasks ?? []) map[t.status]?.push(t);
+    for (const t of project?.tasks ?? []) map[t.status]?.push(t);
     return map;
-  }, [project.tasks]);
+  }, [project?.tasks]);
 
   // загрузим список пользователей для селекта участника (только для админа)
   useEffect(() => {
@@ -51,10 +72,25 @@ export default function Project() {
   }, [isAdmin]);
 
   useEffect(() => {
-    const ids = new Set((project.tasks || []).map(t => t.id));
+    const ids = new Set((project?.tasks || []).map(t => t.id));
     setFileErrors(prev => Object.fromEntries(Object.entries(prev).filter(([key]) => ids.has(key))));
     setUploadingFiles(prev => Object.fromEntries(Object.entries(prev).filter(([key]) => ids.has(key))));
-  }, [project.tasks]);
+  }, [project?.tasks]);
+
+  if (!project) {
+    return (
+      <section className="page">
+        <button type="button" className="btn btn--ghost page-back" onClick={() => navigate("/projects")}>
+          ← К проектам
+        </button>
+        {loadingProject && <p>Загрузка проекта…</p>}
+        {!loadingProject && loadError && (
+          <div className="field-error field-error--block">{loadError}</div>
+        )}
+        {!loadingProject && !loadError && <p>Проект не найден.</p>}
+      </section>
+    );
+  }
 
   async function handleDeleteTask(taskId) {
     try {
